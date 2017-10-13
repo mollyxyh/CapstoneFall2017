@@ -1,6 +1,7 @@
 import xlrd
 import math
 import numpy as np
+import pandas as pd
 from scipy.optimize import minimize
 
 class SABR_model:   
@@ -150,3 +151,6 @@ class SABR_model:
             rho[i] = res.x[2]
             nu[i] = res.x[3]
             jacmat[i]=res.jac
+            
+        jacmat=pd.DataFrame(jacmat)
+        jacmat.to_csv("../02 Fitter/jacmat.csv")

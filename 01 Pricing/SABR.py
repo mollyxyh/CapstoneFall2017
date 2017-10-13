@@ -132,9 +132,13 @@ class SABR_model:
             obj = math.sqrt(sum_sq_diff)
         return obj
     
-    def calibration(self,starting_par,F,K,time,MKT):
+    def calibration(self,starting_par,F,K,time,MKT,fix_par='auto',fix_no='auto'):    
         global alpha,beta,rho,nu,jacmat
-        starting_guess = np.array([0.001,0.5,0,0.001])
+        starting_guess = np.array([0.001,0.5,0,0.001])  
+        if fix_par=='auto':
+            pass
+        else:
+            starting_guess[fix_par]=fix_no        
         alpha=len(F)*[starting_guess[0]]
         beta=len(F)*[starting_guess[1]]
         rho=len(F)*[starting_guess[2]]
@@ -144,8 +148,11 @@ class SABR_model:
         for i in range(len(F)):
             x0 = starting_par
             bnds = ((0.001,None) , (0,1) , (-0.999,0.999) , (0.001,None))
-            res = minimize(self.objfunc, x0 , (F[i],K[i],time[i],MKT[i]) ,bounds = bnds, method='SLSQP') # for a constrained minimization of multivariate scalar functions
-        
+            if fix_par=='auto':
+                res = minimize(self.objfunc,x0,(F[i],K[i],time[i],MKT[i]),bounds=bnds,method='SLSQP') # for a constrained minimization of multivariate scalar functions
+            else:
+                res = minimize(self.objfunc,x0,(F[i],K[i],time[i],MKT[i]),bounds=bnds,constraints={'type':'eq','fun':lambda par: par[fix_par]-fix_no},method='SLSQP') # for a constrained minimization of multivariate scalar functions
+            
             alpha[i] = res.x[0]
             beta[i] = res.x[1]
             rho[i] = res.x[2]
@@ -153,4 +160,13 @@ class SABR_model:
             jacmat[i]=res.jac
             
         jacmat=pd.DataFrame(jacmat)
-        jacmat.to_csv("../02 Fitter/jacmat.csv")
+        params=pd.DataFrame(data=[alpha,beta,rho,nu],index=['alpha','beta','rho','nu'])
+        if fix_par=='auto':
+            jacmat.to_csv("../02 Fitter/parameters/jacmat.csv")     
+            params.to_csv("../02 Fitter/parameters/params.csv")
+        else:
+            suffix='_'+str(fix_par)+'_'+str(fix_no)
+            jacmat.to_csv("../02 Fitter/parameters/jacmat%s.csv"%(suffix))     
+            params.to_csv("../02 Fitter/parameters/params%s.csv"%(suffix))
+        return {'alpha':alpha,'beta':beta,'rho':rho,'nu':nu}
+               

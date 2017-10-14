@@ -17,7 +17,6 @@ def drawTwoRandomNumbers(rho):
 
     return [z1, x2]
 
-
 def simulateSABRMonteCarloEuler(no_of_sim, no_of_steps, expiry, F_0, alpha_0, beta, rho, nu):
     '''
     Monte Carlo SABR using Euler scheme.
@@ -69,8 +68,6 @@ def simulateSABRMonteCarloEuler(no_of_sim, no_of_steps, expiry, F_0, alpha_0, be
 
     return simulated_forwards
 
-
-
 def simulateSABRMonteCarloMilstein(no_of_sim, no_of_steps, expiry, F_0, alpha_0, beta, rho, nu):
     '''
     Monte Carlo SABR using Milstein scheme.
@@ -108,6 +105,7 @@ def simulateSABRMonteCarloMilstein(no_of_sim, no_of_steps, expiry, F_0, alpha_0,
                 # Use the absolute for the diffusion to avoid numerical issues if the forward interest rate goes into negative
                 dW_F = dt_sqrt * rand[0]
                 F_b = math.pow(abs(F_t), beta)
+                exp_F = 2.0*beta-1.0
                 F_t = (F_t + alpha_t * F_b * dW_F +
                        0.5 * beta * math.pow(alpha_t, 2.0) * math.pow(abs(F_t), exp_F) * (rand[0] * rand[0] - 1.0) * dt)
 

@@ -151,7 +151,7 @@ class SABR_model:
             if fix_par=='auto':
                 res = minimize(self.objfunc,x0,(F[i],K[i],time[i],MKT[i]),bounds=bnds,method='SLSQP') # for a constrained minimization of multivariate scalar functions
             else:
-                res = minimize(self.objfunc,x0,(F[i],K[i],time[i],MKT[i]),bounds=bnds,constraints={'type':'eq','fun':lambda par: par[fix_par]-fix_no},method='SLSQP') # for a constrained minimization of multivariate scalar functions
+                res = minimize(self.objfunc,x0,(F[i],K[i],time[i],MKT[i]),bounds=bnds,constraints={'type':'eq','fun':lambda par: par[fix_par]-fix_no},method='SLSQP') # with equality constraints added to calibrate another three with one parameter fixed
             
             alpha[i] = res.x[0]
             beta[i] = res.x[1]
@@ -160,7 +160,7 @@ class SABR_model:
             jacmat[i]=res.jac
             
         jacmat=pd.DataFrame(jacmat)
-        params=pd.DataFrame(data=[alpha,beta,rho,nu],index=['alpha','beta','rho','nu'])
+        params=pd.DataFrame(data=[alpha,beta,rho,nu,list(F),list(time),list(K),list(MKT)],index=['alpha','beta','rho','nu','F','time'])
         if fix_par=='auto':
             jacmat.to_csv("../02 Fitter/parameters/jacmat.csv")     
             params.to_csv("../02 Fitter/parameters/params.csv")

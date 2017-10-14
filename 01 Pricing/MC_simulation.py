@@ -7,7 +7,6 @@ def drawTwoRandomNumbers(rho):
     draw a pair of correlated random numbers
     @var rho: SABR rho
     '''
-
     z1 = random.gauss(0, 1)
     y1 = random.gauss(0, 1)
 
@@ -29,7 +28,6 @@ def simulateSABRMonteCarloEuler(no_of_sim, no_of_steps, expiry, F_0, alpha_0, be
     @var rho : SABR rho
     @var nu: SABR nu
     '''
-
     # Step length in years
     dt = float(expiry) / float(no_of_steps)
     dt_sqrt = math.sqrt(dt)

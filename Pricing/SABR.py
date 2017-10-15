@@ -229,11 +229,11 @@ class SABR_model:
         jacmat=pd.DataFrame(jacmat)
         params=pd.DataFrame(data=[alpha,beta,rho,nu,list(F),list(time)],index=['alpha','beta','rho','nu','F','time'])
         if fix_par=='auto':
-            jacmat.to_csv("../02 Fitter/parameters/jacmat_%s.csv"%(method))     
-            params.to_csv("../02 Fitter/parameters/params_%s.csv"%(method))
+            jacmat.to_csv("../Fitter/parameters/jacmat_%s.csv"%(method))     
+            params.to_csv("../Fitter/parameters/params_%s.csv"%(method))
         else:
             suffix='_'+str(fix_par)+'_'+str(fix_no)+'_'+method
-            jacmat.to_csv("../02 Fitter/parameters/jacmat%s.csv"%(suffix))     
-            params.to_csv("../02 Fitter/parameters/params%s.csv"%(suffix))
+            jacmat.to_csv("../Fitter/parameters/jacmat%s.csv"%(suffix))     
+            params.to_csv("../Fitter/parameters/params%s.csv"%(suffix))
         return {'alpha':alpha,'beta':beta,'rho':rho,'nu':nu}
                

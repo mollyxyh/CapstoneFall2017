@@ -1,9 +1,6 @@
 import xlrd
 import numpy as np
-
-import sys
-sys.path.append('../01 Pricing')
-from SABR import SABR_model
+import ..Pricing.SABR.SABR_model as SABR_model
 
 def fitting(market_data, method='Hagan'):
     '''
@@ -13,11 +10,11 @@ def fitting(market_data, method='Hagan'):
     '''
     
     ######## inputs and outputs #########################################
-    outvol = open('../05 Outputs/outvol_%s.csv' % (method), 'w')  # file output of volatilities
-    vol_diff = open('../05 Outputs/vol_differences_%s.csv' % (method), 'w')  # file output differences between SABR and Market volatilities
-    parameters = open('../05 Outputs/parameters_%s.csv' % (method), 'w')  # file output parameters
+    outvol = open('../Outputs/outvol_%s.csv' % (method), 'w')  # file output of volatilities
+    vol_diff = open('../Outputs/vol_differences_%s.csv' % (method), 'w')  # file output differences between SABR and Market volatilities
+    parameters = open('../Outputs/parameters_%s.csv' % (method), 'w')  # file output parameters
 
-    file_input=xlrd.open_workbook('../04 Inputs/'+market_data)  # load market data
+    file_input=xlrd.open_workbook('../Inputs/'+market_data)  # load market data
     Market_data=file_input.sheet_by_name('Swaptions data')  # file input forward rates
 
     ######## set swaptions characteristics ###############################
@@ -114,10 +111,10 @@ def fitting(market_data, method='Hagan'):
         else:
             label_strikes[i] = str(strike_spreads[i])
 
-    outvol = open('../05 Outputs/outvol_%s.csv' % (method), 'a')  # file output of volatilities
-    vol_diff = open('../05 Outputs/vol_differences_%s.csv' % (method),
+    outvol = open('../Outputs/outvol_%s.csv' % (method), 'a')  # file output of volatilities
+    vol_diff = open('../Outputs/vol_differences_%s.csv' % (method),
                     'a')  # file output differences between SABR and Market volatilities
-    parameters = open('../05 Outputs/parameters_%s.csv' % (method), 'a')  # file output parameters
+    parameters = open('../Outputs/parameters_%s.csv' % (method), 'a')  # file output parameters
 
     ######## Calibration ###################################################
     # Fitting SABR model with market_data

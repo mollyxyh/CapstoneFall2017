@@ -1,6 +1,6 @@
 import xlrd
 import numpy as np
-import ..Pricing.SABR.SABR_model as SABR_model
+import Pricing.SABR as SABR
 
 def fitting(market_data, method='Hagan'):
     '''
@@ -118,7 +118,7 @@ def fitting(market_data, method='Hagan'):
 
     ######## Calibration ###################################################
     # Fitting SABR model with market_data
-    sabr = SABR_model(label_ten, label_exp, num_strikes, label_strikes, strike_spreads, outvol, vol_diff, parameters)
+    sabr = SABR.SABR_model(label_ten, label_exp, num_strikes, label_strikes, strike_spreads, outvol, vol_diff, parameters)
     calibrates = sabr.calibration(starting_guess, F, K, expiries, MKT, 'auto', 'auto', method)
     print 'Calibrated results of input data:\n'
     sabr.SABR_vol_matrix(calibrates['alpha'], calibrates['beta'], calibrates['rho'], calibrates['nu'], F, K, expiries,

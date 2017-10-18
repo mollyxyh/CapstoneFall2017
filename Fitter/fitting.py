@@ -137,11 +137,18 @@ def fitting(market_data, method='Hagan'):
         calibrates = sabr.calibration(starting_guess, F, K, expiries, MKT, 2, fix, method)
         sabr.SABR_vol_matrix(calibrates['alpha'], calibrates['beta'], calibrates['rho'], calibrates['nu'], F, K,
                              expiries, MKT, method)
+        
+    # Test Alpha for over-specification analysis
+    print '\nOver specification analysis with alpha fixed:'
+    for fix in [0.2, 0.4, 0.6]:
+        calibrates = sabr.calibration(starting_guess, F, K, expiries, MKT, 0, fix, method)
+        sabr.SABR_vol_matrix(calibrates['alpha'], calibrates['beta'], calibrates['rho'], calibrates['nu'], F, K,
+                             expiries, MKT, method)
 
-    ## Test Nu
-    # for fix in [0,0.3,0.5,0.7,1]:
-    # calibrates=sabr.calibration(starting_guess,F,K,expiries,MKT,3,fix)
-    # sabr.SABR_vol_matrix(calibrates['alpha'],calibrates['beta'],calibrates['rho'],calibrates['nu'],F,K,expiries,MKT)
+    # Test Nu for over-specification analysis
+    for fix in [0.2,0.4,0.6]:
+        calibrates=sabr.calibration(starting_guess,F,K,expiries,MKT,3, fix, method)
+        sabr.SABR_vol_matrix(calibrates['alpha'],calibrates['beta'],calibrates['rho'],calibrates['nu'],F,K,expiries,MKT)
 
     outvol.close()
     vol_diff.close()

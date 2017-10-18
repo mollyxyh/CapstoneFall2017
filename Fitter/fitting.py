@@ -146,6 +146,7 @@ def fitting(market_data, method='Hagan'):
                              expiries, MKT, method)
 
     # Test Nu for over-specification analysis
+    print '\nOver specification analysis with vega fixed:'
     for fix in [0.2,0.4,0.6]:
         calibrates=sabr.calibration(starting_guess,F,K,expiries,MKT,3, fix, method)
         sabr.SABR_vol_matrix(calibrates['alpha'],calibrates['beta'],calibrates['rho'],calibrates['nu'],F,K,expiries,MKT)

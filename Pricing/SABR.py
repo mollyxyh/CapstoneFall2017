@@ -69,7 +69,7 @@ class SABR_model:
                 VOL=sigma*(1.0+sigma_exp*time) 
                 diff=VOL-MKT
 
-        print round(VOL,4), '\t',
+        
         self.outvol.write('%r;' %round(VOL,4) )
         if MKT==0:
             diff = 0
@@ -80,7 +80,7 @@ class SABR_model:
     def smile(self,alpha,beta,rho,nu,F,K,time,MKT,i,method='Hagan'): # F, time and the parameters are scalars, K and MKT are vectors, i is the index for tenor/expiry label
         label_ten=self.label_ten
         label_exp=self.label_exp
-        print label_ten[i] , '\t' , label_exp[i] , '\t' ,
+        
         
         self.outvol.write('%s;%s;' %(label_ten[i],label_exp[i]))
         self.vol_diff.write('%s;%s;' %(label_ten[i],label_exp[i]))
@@ -91,7 +91,7 @@ class SABR_model:
                 self.shift(F,K)
             self.SABR(alpha,beta,rho,nu,F,K[j],time,MKT[j],method)
 
-        print ' '
+        
         self.outvol.write('\n')
         self.vol_diff.write('\n')
         self.parameters.write('%f;%f;%f;%f;' %(alpha ,beta ,rho ,nu))
@@ -102,12 +102,7 @@ class SABR_model:
         label_strikes=self.label_strikes
         strike_spreads=self.strike_spreads
         
-        print ' '
-        print (2+((num_strikes-1)/2))*'       '+'SABR VOLATILITIES'
-        print '  ' , '\t' , 'strikes:' , 
-        for i in range(num_strikes):
-            print label_strikes[i] , '\t' ,
-        print ' '
+    
         
         #outvol=self.outvol      # file output of volatilities
         #vol_diff=self.vol_diff  # file output differences between SABR and Market volatilities
@@ -126,7 +121,7 @@ class SABR_model:
             self.vol_diff.write('%s;' %label_strikes[j])
         self.outvol.write('\n')
         self.vol_diff.write('\n')
-        print 'tenor' , '\t' ,   'expiry'
+       
         self.parameters.write('%s;%s;%s;%s;%s;%s' %('tenor','expiry','alpha','beta','rho','nu'))
         self.parameters.write('\n')
 

@@ -3,7 +3,6 @@ import numpy as np
 def is_pos_def(x): #Check whether the input matrix is positive definite or not
     return np.all(np.linalg.eigvals(x) > 0)
 
-
 def check_collinearity(jacmat):
     # read jacobian matrix from the optimization results of calibration
     jacmat = jacmat.iloc[:, 1:]

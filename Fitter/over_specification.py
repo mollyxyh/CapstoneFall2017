@@ -1,52 +1,24 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-def check_beta(vols,vol_diff):
+def over_specification(check):
     '''
-    This function plots implied vols under Hagan Lognormal SABR with beta fixed to [0,0.3,0.5,0.7,1] vs. market implied vols.
-    @var vols: calibrated vol data from SABR_calibration.ipynb
-    @val vol_diff: calibrated vol difference data (vol-mkt) from SABR_calibration.ipynb
+    This function plots ivols smile by Hagan Lognormal SABR with different equal constraints and the market ivols smile.
+    @var check: a dictionary returned by fitting.py, which stores the calibration results with a specific parameter fixed to specific values.
     '''
-    K=[-150,-100,-50,-25,0,25,50,100,150]
-    bs = ['auto', 0, 0.3, 0.5, 0.7, 1] # auto means optimization without equality constraints, which means optimal calibration
-    for b in [0, 1, 2, 3, 4, 5]:
-        vols_tar = vols.loc[28 + 38 * b].values[0]
-        vols_tar = vols_tar.split(';')[2:-1]
-        vols_tar = np.array([float(item) for item in vols_tar])
-        diff = vol_diff.loc[28 + 38 * b].values[0]
-        diff = diff.split(';')[2:-1]
-        diff = np.array([float(item) for item in diff])
-        MKT = vols_tar - diff
-
-        plt.plot(K, vols_tar * 100, linestyle='solid', marker='x', color='black', label='Hagan Lognormal SABR') #calibrated implied vols
-        plt.plot(K, MKT * 100, linestyle='--', color='blue', label='Market') #market implied vols
-        plt.title('Beta checking with beta=' + str(bs[b]))
-        plt.xlabel('strike')
-        plt.ylabel('implied vols (%)')
-        plt.legend()
-        plt.show()
-        
-def check_rho(vols,vol_diff):
-    '''
-    This function plots implied vols under Hagan Lognormal SABR with rho fixed to [0,0.3,0.5,0.7,0.9] vs. market implied vols.
-    @var vols: calibrated vol data from SABR_calibration.ipynb
-    @val vol_diff: calibrated vol difference data (vol-mkt) from SABR_calibration.ipynb
-    '''
-    K=[-150,-100,-50,-25,0,25,50,100,150]
-    bs = [0, -0.3, -0.5, -0.7, -0.9]
-    for b in [0, 1, 2, 3, 4]:
-        vols_tar = vols.loc[28 + 38 * (b+6)].values[0]
-        vols_tar = vols_tar.split(';')[2:-1]
-        vols_tar = np.array([float(item) for item in vols_tar])
-        diff = vol_diff.loc[28 + 38 * b].values[0]
-        diff = diff.split(';')[2:-1]
-        diff = np.array([float(item) for item in diff])
-        MKT = vols_tar - diff
-
-        plt.plot(K, vols_tar * 100, linestyle='solid', marker='x', color='black', label='Hagan Lognormal SABR')
-        plt.plot(K, MKT * 100, linestyle='--', color='blue', label='Market')
-        plt.title('Rho checking with rho=' + str(bs[b]))
-        plt.xlabel('strike')
-        plt.ylabel('implied vols (%)')
-        plt.legend()
-        plt.show()
+    keys=check.keys() #a list of values to which the parameter is fixed
+    K_spreads=check[keys[0]]['ivols'].columns.values.tolist()[3:] #set K spreads as xlabels
+    K_spreads[K_spreads.index('ATM')]=0
+    for key in keys:
+        results=check[float(key)] #calibration result with specific equal constraint
+        vols=results['ivols'].loc[27,:].values[3:] #ivols predicted for different K spreads
+        vols_diff=results['ivols_diff'].loc[27,:].values[3:] #ivols gaps for different K spreads
+        MKT=vols-vols_diff #market ivols for different K spreads
+        plt.plot(K_spreads, vols*100, linestyle='solid',label='parameter='+str(key)) #calibrated implied vols by SABR
+    plt.plot(K_spreads, MKT*100, linestyle='--', color='black', label='Market') #market implied vols
+    plt.title('Over-specification Analysis')
+    plt.xlabel('strike spreads (bps)')
+    plt.ylabel('implied vols (%)')
+    plt.legend()
+    plt.show()
+    

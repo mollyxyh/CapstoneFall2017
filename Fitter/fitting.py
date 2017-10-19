@@ -2,18 +2,15 @@ import xlrd
 import numpy as np
 import Pricing.SABR as SABR
 
-def fitting(market_data, method='Hagan'):
+def fitting(market_data, method='Hagan',mark='auto'):
     '''
-    This function calibrates different versions of SABR models with the input data and does some preparation work for later over specification analysis, e.g. calibrating another three parameters with one fixed to specific values. The output results are saved in '05 Outputs' folder and '02 Fitter/parameters' folder.
+    This function calibrates different versions of SABR models with the input data and does some preparation work for later over specification analysis, e.g. calibrating another three parameters with one fixed to specific value. The output variable results is a dictionary that stores the ivols predicted, ivol gap from market ivols and parameters of the SABR model.
     @var market_data: the input data to which SABR model needs to be fitted
-    @val method: the specific version of SABR model we are using
+    @var method: the specific version of SABR model we are using
+    @var mark: representing if equal constraint is applied and of which parameter the constraint is applied
     '''
     
     ######## inputs and outputs #########################################
-    outvol = open('../Outputs/outvol_%s.csv' % (method), 'w')  # file output of volatilities
-    vol_diff = open('../Outputs/vol_differences_%s.csv' % (method), 'w')  # file output differences between SABR and Market volatilities
-    parameters = open('../Outputs/parameters_%s.csv' % (method), 'w')  # file output parameters
-
     file_input=xlrd.open_workbook('../Inputs/'+market_data)  # load market data
     Market_data=file_input.sheet_by_name('Swaptions data')  # file input forward rates
 
@@ -111,38 +108,48 @@ def fitting(market_data, method='Hagan'):
         else:
             label_strikes[i] = str(strike_spreads[i])
 
-    outvol = open('../Outputs/outvol_%s.csv' % (method), 'a')  # file output of volatilities
-    vol_diff = open('../Outputs/vol_differences_%s.csv' % (method),
-                    'a')  # file output differences between SABR and Market volatilities
-    parameters = open('../Outputs/parameters_%s.csv' % (method), 'a')  # file output parameters
-
     ######## Calibration ###################################################
-    # Fitting SABR model with market_data
-    sabr = SABR.SABR_model(label_ten, label_exp, num_strikes, label_strikes, strike_spreads, outvol, vol_diff, parameters)
-    calibrates = sabr.calibration(starting_guess, F, K, expiries, MKT, 'auto', 'auto', method)
-    print 'Calibrated results of input data:\n'
-    sabr.SABR_vol_matrix(calibrates['alpha'], calibrates['beta'], calibrates['rho'], calibrates['nu'], F, K, expiries,
+    results={} # set output dictionary
+    
+    if mark=='auto':
+        # Fit SABR model with market_data
+        sabr=SABR.SABR_model(label_ten,label_exp,num_strikes,label_strikes,strike_spreads)
+        calibrates_auto=sabr.calibration(starting_guess, F, K, expiries, MKT, 'auto', 'auto', method)
+        results['auto']=sabr.SABR_vol_matrix(calibrates_auto['alpha'], calibrates_auto['beta'], calibrates_auto['rho'], calibrates_auto['nu'], F, K, expiries,
                          MKT, method)
-
-    # Test Beta for over-specification analysis
-    print '\nOver specification analysis with beta fixed:'
-    for fix in [0, 0.3, 0.5, 0.7, 1]:
-        calibrates = sabr.calibration(starting_guess, F, K, expiries, MKT, 1, fix, method)
-        sabr.SABR_vol_matrix(calibrates['alpha'], calibrates['beta'], calibrates['rho'], calibrates['nu'], F, K,
+        results['jacmat']=calibrates_auto['jacmat'] # stored for collinearity analysis
+        
+    elif mark=='beta':
+        # Test Beta for over-specification analysis
+        for fix in [0, 0.3, 0.5, 0.7, 1]:
+            sabr=SABR.SABR_model(label_ten,label_exp,num_strikes,label_strikes,strike_spreads)
+            calibrates=sabr.calibration(starting_guess, F, K, expiries, MKT, 1, fix, method)
+            results[fix]=sabr.SABR_vol_matrix(calibrates['alpha'], calibrates['beta'], calibrates['rho'], calibrates['nu'], F, K,
                              expiries, MKT, method)
-
-    # Test Rho for over-specification analysis
-    print '\nOver specification analysis with rho fixed:'
-    for fix in [0, -0.3, -0.5, -0.7, -0.9]:
-        calibrates = sabr.calibration(starting_guess, F, K, expiries, MKT, 2, fix, method)
-        sabr.SABR_vol_matrix(calibrates['alpha'], calibrates['beta'], calibrates['rho'], calibrates['nu'], F, K,
+    
+    elif mark=='rho':
+        # Test Rho for over-specification analysis
+        for fix in [0, -0.3, -0.5, -0.7, -0.9]:
+            sabr=SABR.SABR_model(label_ten,label_exp,num_strikes,label_strikes,strike_spreads)
+            calibrates = sabr.calibration(starting_guess, F, K, expiries, MKT, 2, fix, method)
+            results[fix]=sabr.SABR_vol_matrix(calibrates['alpha'], calibrates['beta'], calibrates['rho'], calibrates['nu'], F, K,
                              expiries, MKT, method)
-
-    ## Test Nu
-    # for fix in [0,0.3,0.5,0.7,1]:
-    # calibrates=sabr.calibration(starting_guess,F,K,expiries,MKT,3,fix)
-    # sabr.SABR_vol_matrix(calibrates['alpha'],calibrates['beta'],calibrates['rho'],calibrates['nu'],F,K,expiries,MKT)
-
-    outvol.close()
-    vol_diff.close()
-    parameters.close()
+    
+    elif mark=='alpha':   
+        # Test Alpha for over-specification analysis
+        for fix in [0.2, 0.4, 0.6]:
+            sabr=SABR.SABR_model(label_ten,label_exp,num_strikes,label_strikes,strike_spreads)
+            calibrates = sabr.calibration(starting_guess, F, K, expiries, MKT, 0, fix, method)
+            results[fix]=sabr.SABR_vol_matrix(calibrates['alpha'], calibrates['beta'], calibrates['rho'], calibrates['nu'], F, K,
+                             expiries, MKT, method)
+    
+    elif mark=='vega':
+        # Test vega for over-specification analysis
+        for fix in [0.2,0.4,0.6]:
+            sabr=SABR.SABR_model(label_ten,label_exp,num_strikes,label_strikes,strike_spreads)
+            calibrates=sabr.calibration(starting_guess,F,K,expiries,MKT,3, fix, method)
+            results[fix]=sabr.SABR_vol_matrix(calibrates['alpha'], calibrates['beta'], calibrates['rho'], calibrates['nu'], F, K,
+                             expiries, MKT, method)
+    
+    return results
+        

@@ -5,15 +5,15 @@ import pandas as pd
 from scipy.optimize import minimize
 
 class SABR_model:   
-    def __init__(self,label_ten,label_exp,num_strikes,label_strikes,strike_spreads):
+    def __init__(self,label_ten,label_exp,num_strikes,label_strikes,strike_spreads,outvol,vol_diff,parameters):
         self.label_ten=label_ten
         self.label_exp=label_exp
         self.num_strikes=num_strikes
         self.label_strikes=label_strikes
         self.strike_spreads=strike_spreads
-        self.ivols=[]
-        self.ivols_diff=[]
-        self.parameters=[]
+        self.outvol=outvol
+        self.vol_diff=vol_diff
+        self.parameters=parameters
         
     def SABR(self,alpha,beta,rho,nu,F,K,time,MKT,method='Hagan'): # all variables are scalars
         if K <= 0:   # negative rates' problem, need to shift the smile
@@ -26,7 +26,8 @@ class SABR_model:
                 A = 1 + ( ((1-beta)**2*alpha**2)/(24.*(V**2)) + (alpha*beta*nu*rho)/(4.*V) + ((nu**2)*(2-3*(rho**2))/24.) ) * time
                 B = 1 + (1/24.)*(((1-beta)*logFK)**2) + (1/1920.)*(((1-beta)*logFK)**4)
                 VOL = (alpha/V)*A
-                diff = VOL - MKT                
+                diff = VOL - MKT
+                
             elif method=='Obloj':
                 logFK = math.log(F/K)
                 one_beta=1-beta
@@ -36,7 +37,8 @@ class SABR_model:
                 sigma_exp=(one_betasqr/24.0*alpha*alpha/fK_beta/fK_beta+0.25*rho*beta*nu*alpha/fK_beta+(2.0-3.0*rho*rho)/24.0*nu*nu)
                 sigma=alpha*math.pow(K,-one_beta)
                 VOL=sigma*(1.0+sigma_exp*time)
-                diff=VOL-MKT      
+                diff=VOL-MKT
+                
         elif F != K: # not-ATM formula
             if method=='Hagan':
                 V = (F*K)**((1-beta)/2.)
@@ -46,7 +48,8 @@ class SABR_model:
                 A = 1 + ( ((1-beta)**2*alpha**2)/(24.*(V**2)) + (alpha*beta*nu*rho)/(4.*V) + ((nu**2)*(2-3*(rho**2))/24.) ) * time
                 B = 1 + (1/24.)*(((1-beta)*logFK)**2) + (1/1920.)*(((1-beta)*logFK)**4)
                 VOL = (nu*logFK*A)/(x*B)
-                diff = VOL - MKT         
+                diff = VOL - MKT
+                
             elif method=='Obloj': ## Check for the formula!!!
                 logFK = math.log(F/K)
                 one_beta=1-beta
@@ -65,31 +68,65 @@ class SABR_model:
                     sigma=nu*logFK/math.log((math.sqrt(1-2*rho*z+z*z)+z-rho)/(1-rho))
                 VOL=sigma*(1.0+sigma_exp*time) 
                 diff=VOL-MKT
-        return [VOL,diff]
-          
-    def smile(self,alpha,beta,rho,nu,F,K,time,MKT,i,method='Hagan'): # F, time and the parameters are scalars, K and MKT are vectors, i is the index for tenor/expiry label 
-        temp1=[self.label_ten[i],self.label_exp[i],F]
-        temp2=[self.label_ten[i],self.label_exp[i],F]
+
+        
+        self.outvol.write('%r;' %round(VOL,4) )
+        if MKT==0:
+            diff = 0
+            self.vol_diff.write('%s;' %'No market data')
+        else:
+            self.vol_diff.write('%r;' %round(diff,4) )
+            
+    def smile(self,alpha,beta,rho,nu,F,K,time,MKT,i,method='Hagan'): # F, time and the parameters are scalars, K and MKT are vectors, i is the index for tenor/expiry label
+        label_ten=self.label_ten
+        label_exp=self.label_exp
+        
+        
+        self.outvol.write('%s;%s;' %(label_ten[i],label_exp[i]))
+        self.vol_diff.write('%s;%s;' %(label_ten[i],label_exp[i]))
+        self.parameters.write('%s;%s;' %(label_ten[i],label_exp[i]))
+
         for j in range(len(K)):
-            if K[0]<= 0:
+            if K[0] <= 0:
                 self.shift(F,K)
-            [VOL,diff]=self.SABR(alpha,beta,rho,nu,F,K[j],time,MKT[j],method)
-            temp1.append(VOL)
-            temp2.append(diff)
-        self.ivols.append(temp1)
-        self.ivols_diff.append(temp2)
-        self.parameters.append([self.label_ten[i],self.label_exp[i],alpha,beta,rho,nu])
+            self.SABR(alpha,beta,rho,nu,F,K[j],time,MKT[j],method)
+
+        
+        self.outvol.write('\n')
+        self.vol_diff.write('\n')
+        self.parameters.write('%f;%f;%f;%f;' %(alpha ,beta ,rho ,nu))
+        self.parameters.write('\n')
     
     def SABR_vol_matrix(self,alpha,beta,rho,nu,F,K,time,MKT,method='Hagan'): # F, time and the parameters are vectors, K and MKT are matrices
-        label_strikes=['tenor','expiry','F']
-        for j in range(len(self.label_strikes)):
-            label_strikes.append(self.label_strikes[j])
+        num_strikes=self.num_strikes
+        label_strikes=self.label_strikes
+        strike_spreads=self.strike_spreads
+        
+    
+        
+        #outvol=self.outvol      # file output of volatilities
+        #vol_diff=self.vol_diff  # file output differences between SABR and Market volatilities
+        #parameters=self.parameters    # file output parameters
+        
+        self.outvol.write('%s;' %'SABR VOLATILITIES')
+        self.outvol.write('\n')
+        self.vol_diff.write('%s;' %'VOLATILITY DIFFERENCES')
+        self.vol_diff.write('\n')
+        self.parameters.write('%s;' %'PARAMETERS')
+        self.parameters.write('\n')
+        self.outvol.write('%s;%s;' %(' ','strikes:'))
+        self.vol_diff.write('%s;%s;' %(' ','strikes:'))
+        for j in range(len(strike_spreads)):
+            self.outvol.write('%s;' %label_strikes[j])
+            self.vol_diff.write('%s;' %label_strikes[j])
+        self.outvol.write('\n')
+        self.vol_diff.write('\n')
+       
+        self.parameters.write('%s;%s;%s;%s;%s;%s' %('tenor','expiry','alpha','beta','rho','nu'))
+        self.parameters.write('\n')
+
         for i in range(len(F)):
             self.smile(alpha[i],beta[i],rho[i],nu[i],F[i],K[i],time[i],MKT[i],i,method)
-        ivols=pd.DataFrame(data=self.ivols,columns=label_strikes) #,columns=label_strikes
-        ivols_diff=pd.DataFrame(data=self.ivols_diff,columns=label_strikes) #,columns=label_strikes
-        params=pd.DataFrame(data=self.parameters,columns=['tenor','expiry','alpha','beta','rho','nu'])
-        return {'ivols':ivols,'ivols_diff':ivols_diff,'params':params}
             
     def shift(self,F,K):
         shift = 0.001 - K[0]
@@ -158,6 +195,7 @@ class SABR_model:
         return obj
     
     def calibration(self,starting_par,F,K,time,MKT,fix_par='auto',fix_no='auto',method='Hagan'):    
+        global alpha,beta,rho,nu,jacmat
         starting_guess = np.array([0.001,0.5,0,0.001])  
         if fix_par=='auto':
             pass
@@ -175,7 +213,7 @@ class SABR_model:
             if fix_par=='auto':
                 res = minimize(self.objfunc,x0,(F[i],K[i],time[i],MKT[i],method),bounds=bnds,method='SLSQP') # for a constrained minimization of multivariate scalar functions
             else:
-                res=minimize(self.objfunc,x0,(F[i],K[i],time[i],MKT[i],method),bounds=bnds,constraints={'type':'eq','fun':lambda par: par[fix_par]-fix_no},method='SLSQP') # with equality constraints added to calibrate another three with one parameter fixed
+                res = minimize(self.objfunc,x0,(F[i],K[i],time[i],MKT[i],method),bounds=bnds,constraints={'type':'eq','fun':lambda par: par[fix_par]-fix_no},method='SLSQP') # with equality constraints added to calibrate another three with one parameter fixed
             
             alpha[i] = res.x[0]
             beta[i] = res.x[1]
@@ -185,5 +223,12 @@ class SABR_model:
             
         jacmat=pd.DataFrame(jacmat)
         params=pd.DataFrame(data=[alpha,beta,rho,nu,list(F),list(time)],index=['alpha','beta','rho','nu','F','time'])
-        return {'alpha':alpha,'beta':beta,'rho':rho,'nu':nu,'params':params,'jacmat':jacmat}
+        if fix_par=='auto':
+            jacmat.to_csv("../Fitter/parameters/jacmat_%s.csv"%(method))     
+            params.to_csv("../Fitter/parameters/params_%s.csv"%(method))
+        else:
+            suffix='_'+str(fix_par)+'_'+str(fix_no)+'_'+method
+            jacmat.to_csv("../Fitter/parameters/jacmat%s.csv"%(suffix))     
+            params.to_csv("../Fitter/parameters/params%s.csv"%(suffix))
+        return {'alpha':alpha,'beta':beta,'rho':rho,'nu':nu}
                

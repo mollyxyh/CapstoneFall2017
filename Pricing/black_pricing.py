@@ -2,7 +2,7 @@ from scipy.stats import norm
 import math
 
 def black(F_T,K,expiry,vol,isCall,r=0):
-    option_value=0
+    #option_value=0
     D=math.exp(-r*expiry)
     if expiry*vol==0.0:
         if isCall:
@@ -36,3 +36,12 @@ def find_ivol(option_price,F_T,K,expiry,r=0):
         print sigma,option_price,black_implied
         sigma+=0.01
     return "failture to find the right ivol!"
+
+def bs_vector(F_T,K,expiry,vol,isCall,i,r=0):
+    for j in range(len(K)):
+        black(F_T,K[j],expiry,vol[j],isCall,r=0)
+
+def bs_matrix(F_T,K,expiry,vol,isCall,r=0): #F_T,expiry are vector, vol,K are a matrix
+    for i in range(len(F_T)):
+        bs_vector(F_T[i],K[i],expiry[i],vol[i],isCall,i,r=0)
+

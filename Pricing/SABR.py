@@ -58,8 +58,8 @@ class SABR_model:
                 elif beta==1:
                     z=nu*logFK/alpha
                     sigma=nu*logFK/math.log((math.sqrt(1-2*rho*z+z*z)+z-rho)/(1-rho))
-                #elif (beta>0) and (beta<1):
                 else:
+                #elif (beta>0) and (beta<1):
                     z=nu*(math.pow(F,(1-beta))-math.pow(K,(1-beta)))/alpha/(1-beta)
                     sigma=nu*logFK/math.log((math.sqrt(1-2*rho*z+z*z)+z-rho)/(1-rho))
                 VOL=sigma*(1.0+sigma_exp*time) 
@@ -133,7 +133,7 @@ class SABR_model:
                     VOL = (par[3]*logFK*A)/(x*B)
                     diff = VOL - MKT[j]  
                     
-                elif method=='Obloj': ## Check for the formula!!!
+                elif method=='Obloj': 
                     logFK = math.log(F/K[j])
                     one_beta=1-par[1]
                     one_betasqr=one_beta*one_beta

@@ -31,7 +31,7 @@ def find_ivol(option_price,F_T,K,expiry,r=0):
     sigma=0.20 #initial guess of sigma
     while sigma<1:
         black_implied=black(F_T,K,expiry,sigma,1,r)
-        if option_price-black_implied<0.0001: #set precision of 0.0001
+        if option_price-black_implied<0.000001: #set precision of 0.000001
             return sigma
         print sigma,option_price,black_implied
         sigma+=0.01

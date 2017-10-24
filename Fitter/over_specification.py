@@ -6,6 +6,7 @@ from Pricing.SABR import SABR_model
 def over_specification(fitter,check):
     '''
     This function plots ivols smile by Hagan Lognormal SABR with different equal constraints and the market ivols smile.
+    @var fitter: a fitter object
     @var check: a dictionary returned by fitter.py, which stores the calibration results with a specific parameter fixed to specific values.
     '''
     keys=check.keys() #a list of values to which the parameter is fixed
@@ -21,6 +22,12 @@ def over_specification(fitter,check):
     plt.show()
     
 def get_check(fitter,fix_par,fix_no):
+    '''
+    This function generates a dictionary composed of ivols dataframes predicted under SABR model with different calibrations.
+    @var fitter: a fitter object
+    @var fix_par: parameter that needs to be fixed when calibrated
+    @var fix_no: a vector of numbers to which fix_par needs to be fixed
+    '''
     check={}
     for no in fix_no:
         results=fitter.calibration(eqc=[fix_par,no])

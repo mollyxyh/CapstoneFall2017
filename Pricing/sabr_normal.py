@@ -4,7 +4,7 @@ from scipy.stats import norm
 
 T_grid=[0.25,0.5,0.75,1,2,5,10]
 
-def antonovLogNormalApprox(y,expiry,F_0,alpha_0,beta,nu,rho,T_grid):
+def NormalApprox(y,expiry,F_0,alpha_0,beta,nu,rho,T_grid):
     b0=alpha_0*(1-beta)*(y-F_0)/(math.pow(y,1-beta)-math.pow(F_0,1-beta))
     B=I(y-F_0,beta,rho,nu)/b0
     S_min=？

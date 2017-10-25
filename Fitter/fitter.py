@@ -6,10 +6,7 @@ from Pricing.SABR import SABR_model
 
 class Fitter:
     def __init__(self, input_file):
-        self.input_file = input_file
-
-    def input_read(self):
-        data = pd.read_excel('../Inputs/' + self.input_file)
+        data = pd.read_excel('../Inputs/' + input_file)
         data.reset_index(inplace=True)
         K_spread = data.iloc[0, 3:].tolist()
         expiry = data.iloc[1:, 1].tolist()
@@ -25,6 +22,7 @@ class Fitter:
         self.K = K
         self.expiry = expiry
         self.tenor = tenor
+        self.K_spread = K_spread
 
     def objfunc(self, par, F, K, expiry, MKT, method='Hagan'):
         res = 0

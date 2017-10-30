@@ -1,11 +1,10 @@
 import numpy as np
 
-def is_pos_def(x): #Check whether the input matrix is positive definite or not
+def is_pos_def(x): # check whether the input matrix is positive definite or not
     return np.all(np.linalg.eigvals(x) > 0)
 
 def check_collinearity(jacmat):
-    # read jacobian matrix from the optimization results of calibration
-    jacmat = jacmat.iloc[:, 1:]
+    jacmat = jacmat.iloc[:,:-1]
 
     # print the jacobian matrix from the optimization
     jacmat = np.matrix(jacmat)
@@ -24,7 +23,7 @@ def check_collinearity(jacmat):
     cond_no = np.linalg.cond(hess)
     print "\nThe condition no. of the Hessian Matrix is:", cond_no
 
-    if cond_no > 10:
-        print "\nThe model may suffer from strong collinearity as the condition no. is greater than 10."
+    if cond_no > 5000:
+        print "\nThe model may suffer from strong collinearity as the condition no. is greater than 5000."
     else:
-        print "\nThe collinearity of the model is tolerable as the condition no. is not greater than 10."
+        print "\nThe collinearity of the model is tolerable as the condition no. is not greater than 5000."

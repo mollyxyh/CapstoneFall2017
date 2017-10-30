@@ -71,7 +71,7 @@ class SABR_model:
             ivols.append(ivol)
         return ivols
     
-    def ivol_matrix(self,alpha,beta,rho,nu,F,K,expiry,method='Hagan'): # all variables are vectors
+    def ivol_matrix(self,alpha,beta,rho,nu,F,K,expiry,method='Hagan'): # K is matrix, other variables are vectors
         ivols=[]
         for i in range(len(F)):
             self.set_params(beta[i],rho[i],nu[i])

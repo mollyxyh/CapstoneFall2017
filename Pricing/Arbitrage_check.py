@@ -2,13 +2,48 @@ import numpy as np
 import pandas as pd
 import xlrd
 from matplotlib import pyplot as plt
-import Pricing.black_pricing as BS
-import Pricing.SABR as SABR
-from Pricing.Data_processor import data_reader,set_label,start_params
+#from Pricing.black_pricing import BSPricer_SABR
+#from Pricing.SABR import SABR_model
+#from Pricing.Data_processor import data_reader,set_label,start_params
 from Pricing.pdf_calculation import numerical_pdf
-from Fitter.fitting import fitting,objfunc,calibration
 
-def arbitrage_check(market_data,file_name):
+def arbitrage(alpha,F,K,expiry,r=0,isCall=1,h=0.0001,vol_method='Hagan',vol_dist='lognormal'):
+    ab = []
+    temp = []
+    pdf = numerical_pdf(alpha,F,K,expiry,isCall,r,h,vol_method,vol_dist)
+    print('SABR volatility method:',vol_method)
+    print('volatility distribution:',vol_dist)
+    for i in range(pdf.shape[0]):
+        for j in range(pdf.shape[1]):
+            if pdf[i][j] <= 0:
+                x = 1
+                print('Expiry=',expiry[i],'Strike price=',K[i][j],'p.d.f=',pdf[i][j],'Yes')
+            else:
+                x = 0
+                print('Expiry=',expiry[i],'Strike price=',K[i][j],'p.d.f=',pdf[i][j],'No')
+            temp.append(x)
+        ab.append(temp)
+    result = np.array(ab)
+    return result
+
+"""
+    def pdf_plot():
+        fig, ax = plt.subplots()
+        for i in range(pdf.shape[0]):
+            ax.plot(K[i],pdf.loc[i][3:],label=(tenor[i]+'; '+expiry[i]))
+            ax.legend()
+        plt.xlabel('strike price')
+        plt.ylabel('lognormal pdf')
+        plt.title('Arbitrage Check')
+        plt.show()
+        return result
+"""
+    
+
+        
+    
+"""
+def arbitrage_check(K,pdf):
     data = data_reader(market_data,file_name)    #read data
     
     new_strike_spreads = np.arange(data['strike_spreads'][0],data['strike_spreads'][-1]+1,1)
@@ -36,4 +71,5 @@ def arbitrage_check(market_data,file_name):
         arbitrage.append(temp)
     results = pd.DataFrame(data=arbitrage,columns=label_strikes)
     return results
+"""
 

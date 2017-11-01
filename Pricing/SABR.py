@@ -30,7 +30,7 @@ class SABR_model:
     
     def ivol_Obloj(self,alpha,F,K,expiry): # alpha and F are state params of SABR model; all variables are scalars
         [beta,rho,nu]=[self.beta,self.rho,self.nu]
-        if K<=0: # negative rates, shift needed
+        if K<0 or K==0: # negative rates, shift needed
             ivol=0
         elif F==K: # ATM formula
             logFK=math.log(F/K)
@@ -60,7 +60,7 @@ class SABR_model:
         return ivol
           
     def ivol_smile(self,alpha,F,K,expiry,i,method='Hagan'): # alpha, F and expiry are scalars, K vectors, i the index for expiry
-        ivols=[F]
+        ivols=[]
         for j in range(len(K)):
             if K[0]<=0:
                 self.shift(F,K)

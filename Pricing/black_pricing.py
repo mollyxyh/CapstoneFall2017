@@ -2,65 +2,70 @@ import pandas as pd
 import numpy as np
 from scipy.stats import norm
 import math
-import Pricing.SABR as SABR
-from Pricing.Data_processor import data_reader,set_label
+from Pricing.SABR import SABR_model
 
-class BS_pricing:   
-    def __init__(self,label_ten,label_exp,num_strikes,label_strikes,strike_spreads):
-        self.label_ten=label_ten
-        self.label_exp=label_exp
-        self.num_strikes=num_strikes
-        self.label_strikes=label_strikes
-        self.strike_spreads=strike_spreads
-        self.option_value=[]
-
-    def black(self,F_T,K,expiry,vol,isCall,r=0):
-    #option_value=0
-        D=math.exp(-r*expiry)
-        if expiry*vol==0.0:
-            if isCall:
-                V=max(F_T-K,0.0)
-            else:
-                V=max(K-F_T,0.0)
-        else:
-            d1=self.dPlusBlack(F_T,K,expiry,vol,r)
-            d2=self.dPlusBlack(F_T,K,expiry,vol,r)
-            if isCall:
-                V =F_T*D*norm.cdf(d1)-K*D*norm.cdf(d2)
-            else:
-                V =K*D*norm.cdf(-d2)-F_T*D*norm.cdf(-d1)
-        return V
+class BSPricer_SABR:
+    def __init__(self,beta,rho,nu):
+        self.beta = beta
+        self.rho = rho
+        self.nu = nu
+        self.option_value = []
     
-    def dPlusBlack(self,F_T,K,expiry,vol,r):
+    def dPlusBlack(self,F_T,K,expiry,vol,r=0):
         D=math.exp(-r*expiry)
         d_Plus=(math.log(F_T*D/K)+(r+0.5*vol*vol)*expiry)/vol/math.sqrt(expiry)
         return d_Plus
 
-    def dMinusBlack(self,F_T,K,expiry,vol,r):
-        d_Minus=dPlusBlack(F_T,K,expiry,vol,r)-vol*math.sqrt(expiry)
+    def dMinusBlack(self,F_T,K,expiry,vol,r=0):
+        d_Minus=self.dPlusBlack(F_T,K,expiry,vol,r)-vol*math.sqrt(expiry)
         return d_Minus
 
-    def bs_vector(self,F_T,K,expiry,vol,isCall,i,r=0):
-        sabr=SABR.SABR_model(self.label_ten,self.label_exp,self.num_strikes,self.label_strikes,self.strike_spreads)
-        temp=[self.label_ten[i],self.label_exp[i],F_T]
+    def price_lognorm_ivol(self,alpha,F_T,K,expiry,r=0,isCall=1,vol_method='Hagan'):
+        sabr = SABR_model(self.beta,self.rho,self.nu)
+        [beta,rho,nu] = [self.beta,self.rho,self.nu]
+        D=math.exp(-r*expiry)
+        if vol_method=='Hagan':
+            vol = sabr.ivol_Hagan(alpha,F_T,K,expiry)
+        elif vol_method=='Obloj':
+            vol = sabr.ivol_Obloj(alpha,F_T,K,expiry)
+        if expiry*vol==0.0:
+            if isCall:
+                self.option_value=max(F_T-K,0.0)
+            else:
+                self.option_value=max(K-F_T,0.0)
+        else:
+            d1=self.dPlusBlack(F_T,K,expiry,vol,r)
+            d2=self.dPlusBlack(F_T,K,expiry,vol,r)
+            if isCall:
+                option_value =F_T*D*norm.cdf(d1)-K*D*norm.cdf(d2)
+            else:
+                option_value =K*D*norm.cdf(-d2)-F_T*D*norm.cdf(-d1)
+        return option_value
+    
+    #def price_norm_ivol()
+    
+    def BS_vector(self,alpha,F_T,K,expiry,isCall,r,vol_method,vol_dist,i):
+        sabr=SABR_model(self.beta,self.rho,self.nu)
+        value = []
         for j in range(len(K)):
             if K[j]<=0:
                 sabr.shift(F_T,K)
-            V = self.black(F_T,K[j],expiry,vol.values[j],isCall,r=0)
-            temp.append(V)
-        self.option_value.append(temp)                                    
+            if vol_dist=='lognormal':
+                V = self.price_lognorm_ivol(alpha,F_T,K[j],expiry,isCall,r,vol_method)
+            #elif vol_dist='normal':
+                #V = black(F_T,K[j],expiry,vol.values[j],isCall,r=0)
+            value.append(V)
+        return value
 
-    def bs_matrix(self,F_T,K,expiry,vol,isCall,r=0): #F_T,expiry are vector, vol,K are a matrix
-        label_strikes=['tenor','expiry','F']
-        for j in range(len(self.label_strikes)):
-            label_strikes.append(self.label_strikes[j])
+    def BS_matrix(self,alpha,F_T,K,expiry,isCall,r,vol_method,vol_dist): #F_T,expiry are vector, vol,K are a matrix
+        option_value=[]
         for i in range(len(F_T)):
-            v = vol.loc[i][3:]
-            option_value = self.bs_vector(F_T[i],K[i],expiry[i],v,isCall,i,r=0)
-            option_value = pd.DataFrame(data=self.option_value,columns=label_strikes)
-        return option_value
-    
-    def find_ivol(self,option_price,F_T,K,expiry,r=0):
+            V_vector = self.BS_vector(alpha,F_T[i],K[i],expiry[i],isCall,r,vol_method,vol_dist,i)
+            option_value.append(V_vector)
+            value_matrix = np.array(option_value) #columns=label_strikes)
+        return value_matrix
+    """
+    def find_ivol(self, option_price,F_T,K,expiry,r=0):
         sigma=0.20 #initial guess of sigma
         while sigma<1:
             black_implied=black(F_T,K,expiry,sigma,1,r)
@@ -69,3 +74,4 @@ class BS_pricing:
             print(sigma,option_price,black_implied)
             sigma+=0.01
         return "failture to find the right ivol!"
+    """

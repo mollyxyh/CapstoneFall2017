@@ -133,7 +133,8 @@ class Fitter:
         sabr=SABR_model(0.5,0,0.25) #random nos
         [F,K,expiry]=[self.F,self.K,self.expiry]
         df=sabr.ivol_matrix(alpha,beta,rho,nu,F,K,expiry,method)
-        df.columns=['F',-150,-100,-50,-25,0,25,50,100,150]
+        df.columns=[-150,-100,-50,-25,0,25,50,100,150]
+        df['F']=self.F
         df['tenor']=self.tenor
         df['expiry']=self.expiry
         df=df[['tenor','expiry','F',-150,-100,-50,-25,0,25,50,100,150]]

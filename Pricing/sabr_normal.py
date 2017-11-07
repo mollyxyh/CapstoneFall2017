@@ -4,15 +4,32 @@ from scipy.stats import norm
 
 T_grid=[0.25,0.5,0.75,1,2,5,10]
 
-def NormalApprox(y,expiry,F_0,alpha_0,beta,nu,rho,T_grid):
-    b0=alpha_0*(1-beta)*(y-F_0)/(math.pow(y,1-beta)-math.pow(F_0,1-beta))
-    B=I(y-F_0,beta,rho,nu)/b0
+def NormalApprox(F_0,K,expiry,alpha_0,beta,rho,nu,T_grid):
+    b0 = initial_vol(F_0,K,alpha_0,beta)
+    B=I(K-F_0,beta,rho,nu)/b0
     S_min=？
-    C=(2*I(S_min-F_0,beta,rho,nu)-I(y-F_0))/b0
+    C=(2*I(S_min-F_0,beta,rho,nu)-I(K-F_0))/b0
     sumterm=0
     for i in range(T_grid.index(expiry)):
         sumterm+=term(i,rho,nu,expiry,T_grid,B,C,b0)
-    return max(F_0-y,0)+math.pow(q(F_0-y,beta,rho,nu),0.25)/sqrt(2*math.pi)*b0*sumterm
+    return max(F_0-K,0)+math.pow(q(F_0-K,beta,rho,nu),0.25)/sqrt(2*math.pi)*b0*sumterm
+
+# The initial normal volatility to use when approximating SABR with normal base
+def initial_vol(F_0,K,alpha_0,beta):
+    b0=alpha_0*(1-beta)*(K-F_0)/(math.pow(K,1-beta)-math.pow(F_0,1-beta))
+    return b0
+
+# Approximation for normal SABR__q(X)
+def q(X,F_0,K,alpha_0,beta,rho):
+    b0 = initial_vol(F_0,K,alpha_0,beta)
+    qX = 1-2*rho*nu/beta0*x+math.pow((nu/b0)*X,2)
+    return qX
+
+def I(x,beta,rho,nu):
+    return beta/nu*math.log((sqrt(q(x,beta,rho,nu)+rho+nu/beta*x))/(1+rho))
+
+def k(i,rho,nu,expiry,T_grid,B):
+    return -1.0/8*nu*nu+(math.log(Phi(T(i,expiry,T_grid),B,rho,nu))-math.log(Phi(T(i-1,expiry,T_grid),B,rho,nu)))/(T(i)-T(i-1))
 
 def erf(x):
     return 2*norm.cdf(x*sqrt(2))-1
@@ -23,12 +40,6 @@ def ierf(x,y): # erf(x+y*j)
     for n in range(10):
         term3+=exp(-n*n/4.0)/(n*n+4*x*x)*(F(n,x,y)+G(n,x,y)*j)
     return erf(x)+term2+2.0/math.pi*exp(-x*x)*term3
-        
-def q(x,beta,rho,nu):
-    return 1-2*rho*nu/beta*x+nu*nu/beta/beta*x*x
-
-def I(x,beta,rho,nu):
-    return beta/nu*math.log((sqrt(q(x,beta,rho,nu)+rho+nu/beta*x))/(1+rho))
 
 def f(x,rho,nu):
     return 0.25*((1+rho)**2*exp(-2*nu*x)+(1-rho)**2*exp(2*nu*x)+2*(1-rho*rho))
@@ -44,8 +55,7 @@ def T(i,expiry,T_grid):
         T_grid=T_grid[:T_grid.index(expiry)+1]
     return T_grid[i]
 
-def k(i,rho,nu,expiry,T_grid,B):
-    return -1.0/8*nu*nu+(math.log(Phi(T(i,expiry,T_grid),B,rho,nu))-math.log(Phi(T(i-1,expiry,T_grid),B,rho,nu)))/(T(i)-T(i-1))
+
 
 def term(i,rho,nu,expiry,T_grid,B,C,b0):
     return exp(-(1.0/8*nu*nu+k(i,rho,nu,expiry,T_grid,B))*T(i-1,expiry,T_grid))*Phi(T(i-1,expiry,T_grid),I(0,beta,rho,nu)/b0,rho,nu)*J(i,rho,nu,expiry,T_grid,B,C,b0)

@@ -12,9 +12,9 @@ def numerical_pdf(alpha,F,K,expiry,isCall=1,r=0,h=0.0001,vol_method='Hagan',vol_
     #[alpha,beta,rho,nu] = [self.alpha,self.beta,self.rho,self.nu]
     bs = BSPricer_SABR(beta,rho,nu)
     if vol_dist=='lognormal':
-        price_minus = bs.BS_matrix(alpha,F,K-h,expiry,isCall,r,vol_method,vol_dist)
-        price = bs.BS_matrix(alpha,F,K,expiry,isCall,r,vol_method,vol_dist)
-        price_plus = bs.BS_matrix(alpha,F,K+h,expiry,isCall,r,vol_method,vol_dist)
+        price_minus = bs.BS_matrix(alpha,F,K-h,expiry,isCall,r,vol_method)
+        price = bs.BS_matrix(alpha,F,K,expiry,isCall,r,vol_method)
+        price_plus = bs.BS_matrix(alpha,F,K+h,expiry,isCall,r,vol_method)
         pdf = (price_plus-2*price+price_minus)/(h*h)
     #elif vol_dist=='normal':     
     return pdf

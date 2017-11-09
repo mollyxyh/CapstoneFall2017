@@ -56,7 +56,7 @@ class SABR_model:
             else:
                 z=nu*(math.pow(F,(1-beta))-math.pow(K,(1-beta)))/alpha/(1-beta)
                 sigma=nu*logFK/math.log((math.sqrt(1-2*rho*z+z*z)+z-rho)/(1-rho))
-                ivol=sigma*(1.0+sigma_exp*expiry) 
+            ivol=sigma*(1.0+sigma_exp*expiry) 
         return ivol
           
     def ivol_smile(self,alpha,F,K,expiry,i,method='Hagan'): # alpha, F and expiry are scalars, K vectors, i the index for expiry

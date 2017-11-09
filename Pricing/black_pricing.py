@@ -42,25 +42,20 @@ class BSPricer_SABR:
                 option_value =K*D*norm.cdf(-d2)-F_T*D*norm.cdf(-d1)
         return option_value
     
-    #def price_norm_ivol()
-    
-    def BS_vector(self,alpha,F_T,K,expiry,isCall,r,vol_method,vol_dist,i):
+    def BS_vector(self,alpha,F_T,K,expiry,isCall,r,vol_method,i):
         sabr=SABR_model(self.beta,self.rho,self.nu)
         value = []
         for j in range(len(K)):
             if K[j]<=0:
                 sabr.shift(F_T,K)
-            if vol_dist=='lognormal':
-                V = self.price_lognorm_ivol(alpha,F_T,K[j],expiry,isCall,r,vol_method)
-            #elif vol_dist='normal':
-                #V = black(F_T,K[j],expiry,vol.values[j],isCall,r=0)
+            V = self.price_lognorm_ivol(alpha,F_T,K[j],expiry,isCall,r,vol_method)
             value.append(V)
         return value
 
-    def BS_matrix(self,alpha,F_T,K,expiry,isCall,r,vol_method,vol_dist): #F_T,expiry are vector, vol,K are a matrix
+    def BS_matrix(self,alpha,F_T,K,expiry,isCall,r,vol_method): #F_T,expiry are vector, vol,K are a matrix
         option_value=[]
         for i in range(len(F_T)):
-            V_vector = self.BS_vector(alpha,F_T[i],K[i],expiry[i],isCall,r,vol_method,vol_dist,i)
+            V_vector = self.BS_vector(alpha,F_T[i],K[i],expiry[i],isCall,r,vol_method,i)
             option_value.append(V_vector)
             value_matrix = np.array(option_value) #columns=label_strikes)
         return value_matrix

@@ -3,7 +3,6 @@ from sympy import cosh,exp,sqrt,sinh,cos,sin
 from scipy.stats import norm
 
 T_grid=[0.25,0.5,0.75,1,2,5,10]
-
 def NormalApprox(F_0,K,expiry,alpha_0,beta,rho,nu,T_grid):
     b0 = initial_vol(F_0,K,alpha_0,beta)
     B=I(K-F_0,beta,rho,nu)/b0

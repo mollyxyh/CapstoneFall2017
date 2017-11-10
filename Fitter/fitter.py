@@ -27,6 +27,11 @@ class Fitter:
     def objfunc(self, par, F, K, expiry, MKT, method='Hagan'):
         sabr = SABR_model(par[1], par[2], par[3])
         res = 0
+        if K[0] <= 0: # shifting applied
+            shift = 0.001 - K[0]
+            for j in range(len(K)):
+                K[j] = K[j] + shift
+                F = F + shift
         if method == 'Hagan':
             for j in range(len(K)):
                 res += (sabr.ivol_Hagan(par[0],F,K[j],expiry) - MKT[j])**2

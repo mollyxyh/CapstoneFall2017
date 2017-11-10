@@ -19,7 +19,7 @@ class BSPricer_SABR:
     def dMinusBlack(self,F_0,K,expiry,vol,r=0):
         d_Minus=self.dPlusBlack(F_0,K,expiry,vol,r)-vol*math.sqrt(expiry)
         return d_Minus
-
+    
     def price_lognorm_ivol(self,alpha,F_0,K,expiry,r=0,isCall=1,vol_method='Hagan'):
         sabr = SABR_model(self.beta,self.rho,self.nu)
         [beta,rho,nu] = [self.beta,self.rho,self.nu]

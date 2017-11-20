@@ -8,7 +8,7 @@ class SABR_model:
         self.rho=rho
         self.nu=nu
         
-    def ivol_Hagan(self,alpha,F,K,expiry): # alpha and F are state params of SABR model; all variables are scalars
+    def ivol_Hagan_lognorm(self,alpha,F,K,expiry): # alpha and F are state params of SABR model; all variables are scalars
         [beta,rho,nu]=[self.beta,self.rho,self.nu]
         if K<=0: # negative rates, shift needed
             ivol=0
@@ -28,6 +28,37 @@ class SABR_model:
             ivol=(nu*logFK*A)/(x*B)       
         return ivol
     
+    def zeta(self,alpha,F,K):
+        [beta,rho,nu]=[self.beta,self.rho,self.nu]
+        result = nu/alpha * (F*K)**((1-beta)/2)*math.log(F/K)
+        return result
+    
+    def xhat(self,alpha,F,K):
+        [beta,rho,nu]=[self.beta,self.rho,self.nu]
+        zt = self.zeta(alpha,F,K)
+        result = math.log((math.sqrt(1-2*rho*zt+zt**2)-rho+zt)/(1-rho))
+        return result
+        
+    def ivol_Hagan_norm(self,alpha,F,K,expiry):
+        [beta,rho,nu]=[self.beta,self.rho,self.nu]
+        if K<=0: # negative rates, shift needed
+            ivol=0
+        elif F==K: # ATM formula (need to find the formula)
+            V=(F*K)**((1-beta)/2.)
+            logFK=math.log(F/K)
+            A=1+(((1-beta)**2*alpha**2)/(24.*(V**2))+(alpha*beta*nu*rho)/(4.*V)+((nu**2)*(2-3*(rho**2))/24.))*expiry
+            B=1+(1/24.)*(((1-beta)*logFK)**2)+(1/1920.)*(((1-beta)*logFK)**4)
+            ivol=(alpha/V)*A
+        elif F!=K: # not-ATM formula
+            logFK=math.log(F/K)
+            A=alpha*(F/K)**(beta/2.)
+            B=(1+ 1/24.*(logFK**2) + 1/1920.*(logFK**4))/(1+ ((1-beta)**2)/24.*(logFK**2)+ ((1-beta)**4)/1920.*(logFK**4))
+            C=self.zeta/self.xhat
+            D=1+(((-beta*(2-beta)*alpha**2)/(24.*(FK)**(1-beta)) + (rho*alpha*nu*beta)/(4.*(FK)**((1-beta)/2.))+
+                 ((2-3*rho**2)/24.)*(nu**2)))*expiry
+            ivol = A*B*C*D     
+        return ivol
+        
     def ivol_Obloj(self,alpha,F,K,expiry): # alpha and F are state params of SABR model; all variables are scalars
         [beta,rho,nu]=[self.beta,self.rho,self.nu]
         if K<0 or K==0: # negative rates, shift needed

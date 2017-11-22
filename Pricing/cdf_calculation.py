@@ -5,8 +5,8 @@ import math
 #from matplotlib import pyplot as plt
 from Pricing.black_pricing import BSPricer_SABR
 
-def numerical_cdf(alpha,F,K,expiry,isCall=1,r=0,h=0.0001,vol_method='Hagan',vol_dist='lognormal'):
-    [beta,rho,nu]=[0.5,0,0.001]
+def numerical_cdf(alpha,beta,rho,nu,F,K,expiry,isCall=1,r=0,h=0.0001,vol_method='Hagan',vol_dist='lognormal'):
+    #[beta,rho,nu]=[0.5,0,0.001]
     #[alpha,beta,rho,nu] = [self.alpha,self.beta,self.rho,self.nu]
     bs = BSPricer_SABR(beta,rho,nu)
     if vol_dist=='lognormal':

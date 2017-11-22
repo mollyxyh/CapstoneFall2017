@@ -6,21 +6,23 @@ from matplotlib import pyplot as plt
 #from Pricing.SABR import SABR_model
 #from Pricing.Data_processor import data_reader,set_label,start_params
 from Pricing.pdf_calculation import numerical_pdf
+from Pricing.cdf_calculation import numerical_cdf
 
 def arbitrage(alpha,F,K,expiry,r=0,isCall=1,h=0.0001,vol_method='Hagan',vol_dist='lognormal'):
     ab = []
     temp = []
     pdf = numerical_pdf(alpha,F,K,expiry,isCall,r,h,vol_method,vol_dist)
+    cdf = numerical_cdf(alpha,F,K,expiry,isCall,r,h,vol_method,vol_dist)
     print('SABR volatility method:',vol_method)
     print('volatility distribution:',vol_dist)
     for i in range(pdf.shape[0]):
         for j in range(pdf.shape[1]):
             if pdf[i][j] <= 0:
                 x = 1
-                print('Expiry=',expiry[i],'Strike price=',K[i][j],'p.d.f=',pdf[i][j],'Yes')
+                print('Expiry=',expiry[i],'Strike price=',K[i][j],'c.d.f=',cdf[i][j],'p.d.f=',pdf[i][j],'Yes')
             else:
                 x = 0
-                print('Expiry=',expiry[i],'Strike price=',K[i][j],'p.d.f=',pdf[i][j],'No')
+                print('Expiry=',expiry[i],'Strike price=',K[i][j],'c.d.f=',cdf[i][j],'p.d.f=',pdf[i][j],'No')
             temp.append(x)
         ab.append(temp)
     result = np.array(ab)
@@ -36,7 +38,6 @@ def arbitrage(alpha,F,K,expiry,r=0,isCall=1,h=0.0001,vol_method='Hagan',vol_dist
         plt.ylabel('lognormal pdf')
         plt.title('Arbitrage Check')
         plt.show()
-        return result
 """
     
 

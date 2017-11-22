@@ -21,20 +21,20 @@ class BSPricer_SABR:
         return d_Minus
     
     def black(self,F_0,K,expiry,vol,isCall,r=0):
-    if expiry*vol == 0.0:
-        if isCall:
-            option_value=max(F_0*math.exp(r*expiry)-K,0.0)
+        if expiry*vol == 0.0:
+            if isCall:
+                option_value=max(F_0*math.exp(r*expiry)-K,0.0)
+            else:
+                option_value=max(K-F_0*math.exp(r*expiry),0.0)
         else:
-            option_value=max(K-F_0*math.exp(r*expiry),0.0)
-    else:
-        d1=self.dPlusBlack(F_0,K,expiry,vol,r)
-        d2=self.dMinusBlack(F_0,K,expiry,vol,r)
-        if isCall:
-            option_value=F_0*norm.cdf(d1)-y*norm.cdf(d2)
-        else:
-            option_value=y*norm.cdf(-d2)-F_0*norm.cdf(-d1)
+            d1=self.dPlusBlack(F_0,K,expiry,vol,r)
+            d2=self.dMinusBlack(F_0,K,expiry,vol,r)
+            if isCall:
+                option_value=F_0*norm.cdf(d1)-y*norm.cdf(d2)
+            else:
+                option_value=y*norm.cdf(-d2)-F_0*norm.cdf(-d1)
 
-    return option_value
+        return option_value
     
     def price_lognorm_ivol(self,alpha,F_0,K,expiry,r=0,isCall=1,vol_method='Hagan'):
         sabr = SABR_model(self.beta,self.rho,self.nu)

@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import math
+#from sympy import solveset
+#from sympy import Symbol, Eq
 from scipy.optimize import minimize
 from Pricing.SABR import SABR_model
 from Pricing.Balland_sabr import Balland
@@ -25,18 +27,22 @@ class Fitter:
         self.expiry = expiry
         self.tenor = tenor
         self.K_spread = K_spread
-
-    def objfunc(self, par, F, K, expiry, MKT, method='Hagan'):
+        
+    def objfunc(self, par, F, K, expiry, MKT, method='Hagan_ln'):
         res = 0
         if K[0] <= 0: # shifting applied
             shift = 0.001 - K[0]
             for j in range(len(K)):
                 K[j] = K[j] + shift
                 F = F + shift
-        if method == 'Hagan':
+        if method == 'Hagan_ln':
             sabr = SABR_model(par[1], par[2], par[3])
             for j in range(len(K)):
-                res += (sabr.ivol_Hagan(par[0],F,K[j],expiry) - MKT[j])**2
+                res += (sabr.ivol_Hagan_ln(par[0],F,K[j],expiry) - MKT[j])**2
+        elif method == 'Hagan_norm':
+            sabr = SABR_model(par[1], par[2], par[3])
+            for j in range(len(K)):
+                res += (sabr.ivol_Hagan_norm(par[0],F,K[j],expiry) - MKT[j])**2
         elif method == 'Obloj':
             sabr = SABR_model(par[1], par[2], par[3])
             for j in range(len(K)):
@@ -51,8 +57,18 @@ class Fitter:
                 res += (sabr.ivol(K[j],expiry,F,par[0]) - MKT[j])**2
         obj = math.sqrt(res)
         return obj
+    
+    def objfunc_atm(self,alpha,beta,rho,nu,F,expiry, MKT, method='Hagan_ln'):
+        sabr = SABR_model(beta,rho,nu)
+        if method=='Hagan_ln':
+           res=(sabr.ivol_Hagan_ln(alpha,F,F,expiry)-MKT)**2
+        elif method=='Hagan_norm':
+            res=(sabr.ivol_Hagan_norm(alpha,F,F,expiry)-MKT)**2
+        elif method=='Obloj':
+            res=(sabr.ivol_Obloj(alpha,F,F,expiry)-MKT)**2
+        return res       
 
-    def calibration(self, starting_par=np.array([0.001, 0.5, 0, 0.001]), method='Hagan', eqc='none'):
+    def calibration(self, starting_par=np.array([0.001, 0.5, 0, 0.001]), method='Hagan_ln', eqc='none'):
         [F, K, expiry, MKT, tenor] = [self.F, self.K, self.expiry, self.MKT, self.tenor]
         starting_guess = starting_par
         if eqc == 'none':
@@ -79,13 +95,17 @@ class Fitter:
             rho[i] = res.x[2]
             nu[i] = res.x[3]
             jacmat[i] = res.jac
-
+            
+            #ATM verification by scipy.optimize.minimize
+            res = minimize(self.objfunc_atm, alpha[i], (beta[i],rho[i],nu[i],F[i],expiry[i],MKT[i][4],method))
+            alpha[i] = res.x[0]
+            
         jacmat = pd.DataFrame(jacmat)
         params = pd.DataFrame(data=[tenor,expiry,F,alpha,beta,rho,nu],index=['tenor','expiry','F','alpha','beta','rho','nu'])
         params = params.T
         return {'alpha': alpha, 'beta': beta, 'rho': rho, 'nu': nu, 'params': params, 'jacmat': jacmat}
     
-    def ivol_SABR(self,alpha,beta,rho,nu,method='Hagan'):
+    def ivol_SABR(self,alpha,beta,rho,nu,method='Hagan_ln'):
         sabr=SABR_model(0.5,0,0.25) #random nos
         [F,K,expiry]=[self.F,self.K,self.expiry]
         df=sabr.ivol_matrix(alpha,beta,rho,nu,F,K,expiry,method)

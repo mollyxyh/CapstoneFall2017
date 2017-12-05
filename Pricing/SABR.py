@@ -8,7 +8,7 @@ class SABR_model:
         self.rho=rho
         self.nu=nu
         
-    def ivol_Hagan_lognorm(self,alpha,F,K,expiry): # alpha and F are state params of SABR model; all variables are scalars
+    def ivol_Hagan_ln(self,alpha,F,K,expiry): # alpha and F are state params of SABR model; all variables are scalars
         [beta,rho,nu]=[self.beta,self.rho,self.nu]
         if K<=0: # negative rates, shift needed
             ivol=0
@@ -39,7 +39,7 @@ class SABR_model:
         result = math.log((math.sqrt(1-2*rho*zt+zt**2)-rho+zt)/(1-rho))
         return result
         
-    def ivol_Hagan_norm(self,alpha,F,K,expiry):
+    def ivol_Hagan_norm(self,alpha,F,K,expiry): #Error: FK not defined!
         [beta,rho,nu]=[self.beta,self.rho,self.nu]
         if K<=0: # negative rates, shift needed
             ivol=0
@@ -53,8 +53,8 @@ class SABR_model:
             logFK=math.log(F/K)
             A=alpha*(F/K)**(beta/2.)
             B=(1+ 1/24.*(logFK**2) + 1/1920.*(logFK**4))/(1+ ((1-beta)**2)/24.*(logFK**2)+ ((1-beta)**4)/1920.*(logFK**4))
-            C=self.zeta/self.xhat
-            D=1+(((-beta*(2-beta)*alpha**2)/(24.*(FK)**(1-beta)) + (rho*alpha*nu*beta)/(4.*(FK)**((1-beta)/2.))+
+            C=self.zeta(alpha,F,K)/self.xhat(alpha,F,K)
+            D=1+(((-beta*(2-beta)*alpha**2)/(24.*(F*K)**(1-beta)) + (rho*alpha*nu*beta)/(4.*(F*K)**((1-beta)/2.))+
                  ((2-3*rho**2)/24.)*(nu**2)))*expiry
             ivol = A*B*C*D     
         return ivol
@@ -90,20 +90,21 @@ class SABR_model:
             ivol=sigma*(1.0+sigma_exp*expiry) 
         return ivol
           
-    def ivol_smile(self,alpha,F,K,expiry,i,method='Hagan'): # alpha, F and expiry are scalars, K vectors, i the index for expiry
+    def ivol_smile(self,alpha,F,K,expiry,i,method='Hagan_ln'): # alpha, F and expiry are scalars, K vectors, i the index for expiry
         ivols=[]
         for j in range(len(K)):
             if K[0]<=0:
                 self.shift(F,K)
-            if method=='Hagan':
-                ivol=self.ivol_Hagan_lognorm(alpha,F,K[j],expiry)
+            if method=='Hagan_ln':
+                ivol=self.ivol_Hagan_ln(alpha,F,K[j],expiry)
+            elif method=='Hagan_norm':
+                ivol=self.ivol_Hagan_norm(alpha,F,K[j],expiry)
             elif method=='Obloj':
                 ivol=self.ivol_Obloj(alpha,F,K[j],expiry)
             ivols.append(ivol)
         return ivols
     
-    # TBD:
-    def ivol_matrix_fit(self,alpha,beta,rho,nu,F,K,expiry,method='Hagan'): # K is matrix, other variables are vectors
+    def ivol_matrix(self,alpha,beta,rho,nu,F,K,expiry,method='Hagan_ln'): # K is matrix, other variables are vectors
         ivols=[]
         for i in range(len(F)):
             self.set_params(beta[i],rho[i],nu[i])
@@ -112,13 +113,13 @@ class SABR_model:
         return ivols
     
     #New Function
-    def ivol_matrix(self,alpha,F,K,expiry,method='Hagan'):
+    def ivol_matrix_validation(self,alpha,F,K,expiry,method='Hagan'):
         ivols=[]
         for i in range(len(F)):
             ivols.append(self.ivol_smile(alpha,F[i],K[i],expiry[i],i,method))
         ivols=pd.DataFrame(data=ivols)
         return ivols
-    
+            
     def shift(self,F,K): # F and K are vectors
         shift=0.001-K[0]
         for j in range(len(K)):

@@ -3,6 +3,8 @@ import pandas as pd
 import math
 from scipy.optimize import minimize
 from Pricing.SABR import SABR_model
+from Pricing.Balland_sabr import Balland
+from Pricing.Antonov_sabr import Antonov
 
 class Fitter:
     def __init__(self, input_file):
@@ -25,7 +27,6 @@ class Fitter:
         self.K_spread = K_spread
 
     def objfunc(self, par, F, K, expiry, MKT, method='Hagan'):
-        sabr = SABR_model(par[1], par[2], par[3])
         res = 0
         if K[0] <= 0: # shifting applied
             shift = 0.001 - K[0]
@@ -33,11 +34,21 @@ class Fitter:
                 K[j] = K[j] + shift
                 F = F + shift
         if method == 'Hagan':
+            sabr = SABR_model(par[1], par[2], par[3])
             for j in range(len(K)):
                 res += (sabr.ivol_Hagan(par[0],F,K[j],expiry) - MKT[j])**2
         elif method == 'Obloj':
+            sabr = SABR_model(par[1], par[2], par[3])
             for j in range(len(K)):
                 res += (sabr.ivol_Obloj(par[0],F,K[j],expiry) - MKT[j])**2
+        elif method == 'Balland':
+            sabr = Balland(par[1], par[2], par[3])
+            for j in range(len(K)):
+                res += (sabr.ivol(K[j],expiry,F,par[0],T_grid=[0.25,0.5,0.75,1,2,5,10]) - MKT[j])**2
+        elif method == 'Antonov':
+            sabr = Antonov(par[1], par[2], par[3])
+            for j in range(len(K)):
+                res += (sabr.ivol(K[j],expiry,F,par[0]) - MKT[j])**2
         obj = math.sqrt(res)
         return obj
 

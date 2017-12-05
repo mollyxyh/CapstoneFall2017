@@ -20,12 +20,28 @@ class BSPricer_SABR:
         d_Minus=self.dPlusBlack(F_0,K,expiry,vol,r)-vol*math.sqrt(expiry)
         return d_Minus
     
+    def black(self,F_0,K,expiry,vol,isCall,r=0):
+        if expiry*vol == 0.0:
+            if isCall:
+                option_value=max(F_0*math.exp(r*expiry)-K,0.0)
+            else:
+                option_value=max(K-F_0*math.exp(r*expiry),0.0)
+        else:
+            d1=self.dPlusBlack(F_0,K,expiry,vol,r)
+            d2=self.dMinusBlack(F_0,K,expiry,vol,r)
+            if isCall:
+                option_value=F_0*norm.cdf(d1)-y*norm.cdf(d2)
+            else:
+                option_value=y*norm.cdf(-d2)-F_0*norm.cdf(-d1)
+
+        return option_value
+    
     def price_lognorm_ivol(self,alpha,F_0,K,expiry,r=0,isCall=1,vol_method='Hagan'):
         sabr = SABR_model(self.beta,self.rho,self.nu)
         [beta,rho,nu] = [self.beta,self.rho,self.nu]
         D=math.exp(-r*expiry)
         if vol_method=='Hagan':
-            vol = sabr.ivol_Hagan(alpha,F_0,K,expiry)
+            vol = sabr.ivol_Hagan_lognorm(alpha,F_0,K,expiry)
         elif vol_method=='Obloj':
             vol = sabr.ivol_Obloj(alpha,F_0,K,expiry)
         if expiry*vol==0.0:
@@ -59,7 +75,7 @@ class BSPricer_SABR:
             option_value.append(V_vector)
             value_matrix = np.array(option_value) #columns=label_strikes)
         return value_matrix
-    """
+    
     def find_ivol(self, option_price,F_T,K,expiry,r=0):
         sigma=0.20 #initial guess of sigma
         while sigma<1:
@@ -69,4 +85,3 @@ class BSPricer_SABR:
             print(sigma,option_price,black_implied)
             sigma+=0.01
         return "failture to find the right ivol!"
-    """

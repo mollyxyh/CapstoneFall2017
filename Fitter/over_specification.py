@@ -26,7 +26,7 @@ def over_specification(fitter,check):
     plt.legend()
     plt.show()
     
-def get_check(fitter,fix_par,fix_no,method='Hagan'):
+def get_check(fitter,fix_par,fix_no,method='Hagan_ln'):
     '''
     This function generates a dictionary composed of ivols dataframes predicted under SABR model with different calibrations.
     @var fitter: a fitter object

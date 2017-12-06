@@ -113,7 +113,7 @@ class SABR_model:
         return ivols
     
     #New Function
-    def ivol_matrix_validation(self,alpha,F,K,expiry,method='Hagan'):
+    def ivol_matrix_validation(self,alpha,F,K,expiry,method='Hagan_ln'):
         ivols=[]
         for i in range(len(F)):
             ivols.append(self.ivol_smile(alpha,F[i],K[i],expiry[i],i,method))

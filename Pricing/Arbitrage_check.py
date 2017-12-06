@@ -12,11 +12,11 @@ class arbitrage_check:
         self.rho=rho
         self.nu=nu
         
-    def numerical_pdf(self,alpha,F,K,expiry,isCall=1,r=0,h=0.0001,vol_method='Hagan',vol_dist='lognormal'):
+    def numerical_pdf(self,alpha,F,K,expiry,isCall=1,r=0,h=0.0001,vol_method='Hagan_ln'):
         #[beta,rho,nu]=[0.5,0,0.001]
         [beta,rho,nu] = [self.beta,self.rho,self.nu]
         bs = BSPricer_SABR(beta,rho,nu)
-        if vol_dist=='lognormal':
+        if vol_method=='Hagan_ln':
             price_minus = bs.BS_matrix(alpha,F,K-h,expiry,isCall,r,vol_method)
             price = bs.BS_matrix(alpha,F,K,expiry,isCall,r,vol_method)
             price_plus = bs.BS_matrix(alpha,F,K+h,expiry,isCall,r,vol_method)
@@ -24,25 +24,24 @@ class arbitrage_check:
         #elif vol_dist=='normal':     
         return pdf
         
-    def numerical_cdf(self,alpha,F,K,expiry,isCall=1,r=0,h=0.0001,vol_method='Hagan',vol_dist='lognormal'):
+    def numerical_cdf(self,alpha,F,K,expiry,isCall=1,r=0,h=0.0001,vol_method='Hagan_ln'):
         #[beta,rho,nu]=[0.5,0,0.001]
         [beta,rho,nu] = [self.beta,self.rho,self.nu]
         bs = BSPricer_SABR(beta,rho,nu)
-        if vol_dist=='lognormal':
+        if vol_method=='Hagan_ln':
             price = bs.BS_matrix(alpha,F,K,expiry,isCall,r,vol_method)
             price_plus = bs.BS_matrix(alpha,F,K+h,expiry,isCall,r,vol_method)
             cdf = (price_plus-price)/h
         #elif vol_dist=='normal':     
         return cdf
         
-    def arbitrage(self,alpha,F,K,expiry,r=0,isCall=1,h=0.0001,vol_method='Hagan',vol_dist='lognormal'):
+    def arbitrage(self,alpha,F,K,expiry,r=0,isCall=1,h=0.0001,vol_method='Hagan_ln'):
         [beta,rho,nu] = [self.beta,self.rho,self.nu]
         ab = []
         temp = []
-        pdf = self.numerical_pdf(alpha,F,K,expiry,isCall,r,h,vol_method,vol_dist)
-        cdf = self.numerical_cdf(alpha,F,K,expiry,isCall,r,h,vol_method,vol_dist)
+        pdf = self.numerical_pdf(alpha,F,K,expiry,isCall,r,h,vol_method)
+        cdf = self.numerical_cdf(alpha,F,K,expiry,isCall,r,h,vol_method)
         print('SABR volatility method:',vol_method)
-        print('volatility distribution:',vol_dist)
         for i in range(pdf.shape[0]):
             for j in range(pdf.shape[1]):
                 if pdf[i][j] <= 0:

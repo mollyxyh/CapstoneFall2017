@@ -30,9 +30,9 @@ class BSPricer_SABR:
             d1=self.dPlusBlack(F_0,K,expiry,vol,r)
             d2=self.dMinusBlack(F_0,K,expiry,vol,r)
             if isCall:
-                option_value=F_0*norm.cdf(d1)-y*norm.cdf(d2)
+                option_value=F_0*norm.cdf(d1)-K*norm.cdf(d2)
             else:
-                option_value=y*norm.cdf(-d2)-F_0*norm.cdf(-d1)
+                option_value=K*norm.cdf(-d2)-F_0*norm.cdf(-d1)
 
         return option_value
     
@@ -46,7 +46,7 @@ class BSPricer_SABR:
             vol = sabr.ivol_Obloj(alpha,F_0,K,expiry)
         if expiry*vol==0.0:
             if isCall:
-                self.option_value=max(F_0/D-K,0.0)
+                self.option_value=max(F_0/Dq-K,0.0)
             else:
                 self.option_value=max(K-F_0/D,0.0)
         else:

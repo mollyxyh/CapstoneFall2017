@@ -36,12 +36,12 @@ class BSPricer_SABR:
 
         return option_value
     
-    def price_lognorm_ivol(self,alpha,F_0,K,expiry,r=0,isCall=1,vol_method='Hagan'):
+    def price_lognorm_ivol(self,alpha,F_0,K,expiry,r=0,isCall=1,vol_method='Hagan_ln'):
         sabr = SABR_model(self.beta,self.rho,self.nu)
         [beta,rho,nu] = [self.beta,self.rho,self.nu]
         D=math.exp(-r*expiry)
-        if vol_method=='Hagan':
-            vol = sabr.ivol_Hagan_lognorm(alpha,F_0,K,expiry)
+        if vol_method=='Hagan_ln':
+            vol = sabr.ivol_Hagan_ln(alpha,F_0,K,expiry)
         elif vol_method=='Obloj':
             vol = sabr.ivol_Obloj(alpha,F_0,K,expiry)
         if expiry*vol==0.0:

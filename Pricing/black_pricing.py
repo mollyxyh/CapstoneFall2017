@@ -46,7 +46,7 @@ class BSPricer_SABR:
             vol = sabr.ivol_Obloj(alpha,F_0,K,expiry)
         if expiry*vol==0.0:
             if isCall:
-                self.option_value=max(F_0/Dq-K,0.0)
+                self.option_value=max(F_0/D-K,0.0)
             else:
                 self.option_value=max(K-F_0/D,0.0)
         else:

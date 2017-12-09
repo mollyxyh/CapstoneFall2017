@@ -61,7 +61,7 @@ class Fitter:
     def objfunc_atm(self,alpha,beta,rho,nu,F,expiry, MKT, method='Hagan_ln'):
         sabr = SABR_model(beta,rho,nu)
         if method=='Hagan_ln':
-           res=(sabr.ivol_Hagan_ln(alpha,F,F,expiry)-MKT)**2
+            res=(sabr.ivol_Hagan_ln(alpha,F,F,expiry)-MKT)**2
         elif method=='Hagan_norm':
             res=(sabr.ivol_Hagan_norm(alpha,F,F,expiry)-MKT)**2
         elif method=='Obloj':
@@ -86,9 +86,12 @@ class Fitter:
             bnds = ((0.001, None), (0, 1), (-0.999, 0.999), (0.001, None))
             if eqc == 'none':
                 res = minimize(self.objfunc, x0, (F[i], K[i], expiry[i], MKT[i], method), bounds=bnds, method='SLSQP')
-            else:
+            elif len(eqc[0])==1:
                 res = minimize(self.objfunc, x0, (F[i], K[i], expiry[i], MKT[i], method), bounds=bnds,
                                constraints={'type': 'eq', 'fun': lambda par: par[eqc[0]] - eqc[1]}, method='SLSQP')
+            elif len(eqc[0])==2:
+                res = minimize(self.objfunc, x0, (F[i], K[i], expiry[i], MKT[i], method), bounds=bnds,
+                               constraints=[{'type': 'eq', 'fun': lambda par: par[eqc[0][0]] - eqc[1][0]},{'type': 'eq', 'fun': lambda par: par[eqc[0][1]] - eqc[1][1]}], method='SLSQP')
 
             alpha[i] = res.x[0]
             beta[i] = res.x[1]

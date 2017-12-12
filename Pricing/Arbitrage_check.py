@@ -35,7 +35,7 @@ class arbitrage_check:
         #elif vol_dist=='normal':     
         return cdf
         
-    def arbitrage(self,alpha,F,K,expiry,r=0,isCall=1,h=0.0001,vol_method='Hagan_ln'):
+    def arbitrage(self,alpha,F,K,expiry,isCall=1,r=0,h=0.0001,vol_method='Hagan_ln'):
         [beta,rho,nu] = [self.beta,self.rho,self.nu]
         ab = []
         temp = []

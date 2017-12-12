@@ -12,7 +12,7 @@ def numerical_cdf(alpha,beta,rho,nu,F,K,expiry,isCall=1,r=0,h=0.0001,vol_method=
     if vol_method=='Hagan_ln':
         price = bs.BS_matrix(alpha,F,K,expiry,isCall,r,vol_method)
         price_plus = bs.BS_matrix(alpha,F,K+h,expiry,isCall,r,vol_method)
-        cdf = (price_plus-price)/h
+        cdf = -(price_plus-price)/h
     #elif vol_method=='Hagan_normal':     
     return cdf
 

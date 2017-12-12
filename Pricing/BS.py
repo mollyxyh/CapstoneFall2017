@@ -1,4 +1,6 @@
 from scipy.stats import norm
+from scipy.optimize import minimize
+from Pricing.SABR import SABR_model
 import math
 
 def black(F_0,y,expiry,vol,isCall):
@@ -34,3 +36,13 @@ def find_ivol(option_price,F_0,y,expiry):
             #print(sigma,option_price,black_implied)
             sigma+=0.0001
         return "failture to find the right ivol!"
+    
+def objfunc_atm(alpha,beta,rho,nu,F,expiry,MKT,method='Hagan_ln'):
+    sabr = SABR_model(beta,rho,nu)
+    if method=='Hagan_ln':
+        res=(sabr.ivol_Hagan_ln(alpha,F,F,expiry)-MKT)**2
+    elif method=='Hagan_norm':
+        res=(sabr.ivol_Hagan_norm(alpha,F,F,expiry)-MKT)**2
+    elif method=='Obloj':
+        res=(sabr.ivol_Obloj(alpha,F,F,expiry)-MKT)**2
+    return res

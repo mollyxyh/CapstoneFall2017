@@ -1,9 +1,11 @@
 import numpy as np
 
 def is_pos_def(x): # check whether the input matrix is positive definite or not
+    '''@var x:input matrix'''
     return np.all(np.linalg.eigvals(x) > 0)
 
 def check_collinearity(jacmat):
+    '''@var jacmat:the Jacobian matrix of linear optimization we are using to check collinearity'''
     jacmat = jacmat.iloc[:,:-1]
 
     # print the jacobian matrix from the optimization

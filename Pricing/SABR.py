@@ -13,10 +13,9 @@ class SABR_model:
         if K<=0: # negative rates, shift needed
             ivol=0
         elif F==K: # ATM formula
-            V=(F*K)**((1-beta)/2.)
+            V=F**(1-beta)
             logFK=math.log(F/K)
             A=1+(((1-beta)**2*alpha**2)/(24.*(V**2))+(alpha*beta*nu*rho)/(4.*V)+((nu**2)*(2-3*(rho**2))/24.))*expiry
-            B=1+(1/24.)*(((1-beta)*logFK)**2)+(1/1920.)*(((1-beta)*logFK)**4)
             ivol=(alpha/V)*A
         elif F!=K: # not-ATM formula
             V=(F*K)**((1-beta)/2.)

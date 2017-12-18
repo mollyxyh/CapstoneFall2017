@@ -4,26 +4,13 @@ def is_pos_def(x): # check whether the input matrix is positive definite or not
     return np.all(np.linalg.eigvals(x) > 0)
 
 def check_collinearity(jacmat):
-    jacmat = jacmat.iloc[:,:-1]
-
-    # print the jacobian matrix from the optimization
-    jacmat = np.matrix(jacmat)
-#    print "The Jacobian matrix is:\n", jacmat
-
-    # construct the Hessian Matrix from the Jacobian matrix
-    hess = np.dot(jacmat, jacmat.T)
-#    print "\nThe Hessian Matrix is:\n", hess
-
-#    if is_pos_def(hess):
-#        print "\nThe Hessian Matrix is postive definite, thus the parameters can minimize the loss function"
-#    else:
-#        print "\nThe Hessian Matrix is not postive definite, thus the parameters may not minimize the loss function"
-
-    # The condition no. is defined as: Max(eigenvalues)/Min(eigenvalues)
-    cond_no = np.linalg.cond(hess)
-    print "\nThe condition no. of the Hessian Matrix is:", cond_no
-
-    if cond_no > 5000:
-        print "\nThe model may suffer from strong collinearity as the condition no. is greater than 5000."
-    else:
-        print "\nThe collinearity of the model is tolerable as the condition no. is not greater than 5000."
+    covmat = np.cov(jacmat.iloc[:,:-1].transpose())
+    try:
+        eig_val_cov, eig_vec_cov = np.linalg.eig(covmat)
+        cond_no = max(eig_val_cov)/min(eig_val_cov)
+        if cond_no > 1000:
+            print ("\nThe model may suffer from strong collinearity as the condition no. is %.2f, greater than 1000."%(cond_no))
+        else:
+            print ("\nThe collinearity of the model is tolerable as the condition no. is %.2f, not greater than 1000."%(cond_no))
+    except:
+        print ('\nLinAlgError: failure to calculate condition number.')

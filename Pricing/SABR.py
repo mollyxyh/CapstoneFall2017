@@ -24,7 +24,10 @@ class SABR_model:
             x=math.log((math.sqrt(1-2*rho*z+z**2)+z-rho)/(1-rho))
             A=1+(((1-beta)**2*alpha**2)/(24.*(V**2))+(alpha*beta*nu*rho)/(4.*V)+((nu**2)*(2-3*(rho**2))/24.))*expiry
             B=1+(1/24.)*(((1-beta)*logFK)**2)+(1/1920.)*(((1-beta)*logFK)**4)
-            ivol=(nu*logFK*A)/(x*B)       
+            if nu==0:
+                ivol=(alpha/V/B)*A
+            elif nu!=0:
+                ivol=(nu*logFK*A)/(x*B)       
         return ivol
         
     def ivol_Hagan_norm(self,alpha,F,K,expiry): #Error: FK not defined!
